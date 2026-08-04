@@ -1,0 +1,33 @@
+{
+  "name": "OpenSubtitles PT-BR",
+  "identifier": "com.github.iina-opensubtitles-ptbr",
+  "version": "0.0.0",
+  "description": "Busca e baixa legendas em português do Brasil pelo OpenSubtitles.",
+  "author": {
+    "name": "Hugo Felipe Camilo",
+    "url": "https://github.com/hfesc"
+  },
+  "ghVersion": 1,
+  "ghRepo": "hfesc/iina-opensubtitles-ptbr",
+  "entry": "dist/index.js",
+  "permissions": [
+    "show-osd",
+    "file-system",
+    "network-request"
+  ],
+  "allowedDomains": [
+    "opensubtitles.com",
+    "*.opensubtitles.com"
+  ],
+  "subtitleProviders": [
+    {
+      "id": "opensub-ptbr",
+      "name": "OpenSubtitles PT-BR"
+    }
+  ],
+  "preferenceDefaults": {
+    "apiBaseUrl": "https://api.opensubtitles.com/api/v1",
+    "tokenExpiresAt": 0,
+    "credentialsConfigured": false
+  }
+}

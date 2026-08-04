@@ -1,0 +1,30 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": true,
+    "requireBranch": [
+      "main"
+    ],
+    "requireUpstream": true,
+    "push": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}",
+    "assets": [
+      "release/*.iinaplgz"
+    ]
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": "npm run check",
+    "after:bump": [
+      "node scripts/sync-version.js ${version}",
+      "npm run build",
+      "npm run pack:plugin"
+    ]
+  }
+}

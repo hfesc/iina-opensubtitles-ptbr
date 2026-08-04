@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configurar OpenSubtitles</title>
+    <link rel="stylesheet" href="window.7c13bb1b.css">
+    <script src="window.4bab7113.js"  ></script>
+  </head>
+  <body>
+    <main>
+      <h1>OpenSubtitles PT-BR</h1>
+      <p class="intro">Informe sua chave de API Consumer e sua conta do OpenSubtitles.com. Os dados são salvos no Chaves do macOS.</p>
+      <form id="credentials-form">
+        <label>
+          Chave da API
+          <input id="api-key" type="password" autocomplete="off" placeholder="Deixe vazio para manter a atual">
+        </label>
+        <label>
+          Usuário
+          <input id="username" type="text" autocomplete="username" placeholder="Deixe vazio para manter o atual">
+        </label>
+        <label>
+          Senha
+          <input id="password" type="password" autocomplete="current-password" placeholder="Deixe vazio para manter a atual">
+        </label>
+        <p id="status" role="status">Verificando configuração…</p>
+        <div class="actions">
+          <button id="clear" class="secondary" type="button" data-clickable="">Limpar credenciais</button>
+          <button type="submit" data-clickable="">Salvar e testar</button>
+        </div>
+      </form>
+      <p class="help">Crie sua chave em <strong>opensubtitles.com → API Consumers</strong>. Nenhum segredo é incluído nos arquivos do plugin.</p>
+    </main>
+  
+
+</body></html>

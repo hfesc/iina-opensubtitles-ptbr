@@ -1,0 +1,46 @@
+{
+  "name": "iina-opensubtitles-ptbr",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Plugin do IINA para pesquisar e baixar legendas PT-BR pelo OpenSubtitles.",
+  "author": "Hugo Felipe Camilo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hfesc/iina-opensubtitles-ptbr.git"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf dist .parcel-cache release",
+    "build": "rm -rf dist .parcel-cache && parcel build .",
+    "pack:plugin": "node scripts/pack-plugin.js",
+    "test": "node --test",
+    "check": "npm test && npm run build",
+    "release": "release-it"
+  },
+  "targets": {
+    "entry": {
+      "source": "src/index.js",
+      "distDir": "./dist/",
+      "isLibrary": false
+    },
+    "window": {
+      "source": "ui/window/index.html",
+      "distDir": "./dist/ui/window",
+      "publicUrl": "./",
+      "engines": {
+        "browsers": "safari >= 10"
+      }
+    }
+  },
+  "browserslist": "safari >= 13",
+  "devDependencies": {
+    "iina-plugin-definition": "^0.99.4",
+    "parcel": "^2.13.3",
+    "archiver": "^7.0.1",
+    "parcel-optimizer-webview": "git+https://github.com/iina/parcel-optimizer-webview.git",
+    "release-it": "^19.2.4"
+  }
+}
