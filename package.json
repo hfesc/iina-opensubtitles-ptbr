@@ -1,6 +1,6 @@
 {
   "name": "iina-opensubtitles-ptbr",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Plugin do IINA para pesquisar e baixar legendas PT-BR pelo OpenSubtitles.",
   "author": "Hugo Felipe Camilo",
