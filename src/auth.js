@@ -35,13 +35,7 @@ export function createAuth({ preferences, http }) {
   }
 
   function configured() {
-    // If the preference is unset, fall back to checking if we physically have a key,
-    // to preserve backwards compatibility with users upgrading from v0.1.x
-    const pref = preferences.get("credentialsConfigured");
-    if (pref === undefined || pref === null) {
-      return Boolean(readCredentials().apiKey);
-    }
-    return pref === true;
+    return preferences.get("credentialsConfigured") === true;
   }
 
   function storeCredentials(credentials) {
@@ -54,9 +48,12 @@ export function createAuth({ preferences, http }) {
       }
     }
     if (changed) invalidateToken();
-    preferences.set("credentialsConfigured", configured());
+
+    const hasKey = Boolean(readCredentials().apiKey);
+    preferences.set("credentialsConfigured", hasKey);
     preferences.sync();
-    return configured();
+
+    return hasKey;
   }
 
   function disableCredentials() {
