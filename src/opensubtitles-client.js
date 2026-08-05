@@ -1,4 +1,8 @@
+import manifest from "../Info.json" with { type: "json" };
+
 const DEFAULT_BASE_URL = "https://api.opensubtitles.com/api/v1";
+// Sourced from the manifest so the version never drifts from the release.
+const USER_AGENT = `IINAOpenSubtitlesPTBR v${manifest.version}`;
 const ALLOWED_API_HOSTS = new Set([
   "api.opensubtitles.com",
   "vip-api.opensubtitles.com",
@@ -45,7 +49,7 @@ export function createOpenSubtitlesClient({
       Accept: "application/json",
       "Content-Type": "application/json",
       "Api-Key": apiKey,
-      "User-Agent": "IINAOpenSubtitlesPTBR v0.1.3",
+      "User-Agent": USER_AGENT,
     };
     if (authenticated && token) value.Authorization = `Bearer ${token}`;
     return value;
