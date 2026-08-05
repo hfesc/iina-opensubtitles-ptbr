@@ -22,9 +22,18 @@ export function createAuth({ utils, preferences, http }) {
     };
   }
 
-  function configured() {
+  function credentialStatus() {
     const credentials = readCredentials();
-    return Boolean(credentials.apiKey && credentials.username && credentials.password);
+    return {
+      configured: Boolean(credentials.apiKey && credentials.username && credentials.password),
+      username: credentials.username,
+      apiKeySaved: Boolean(credentials.apiKey),
+      passwordSaved: Boolean(credentials.password),
+    };
+  }
+
+  function configured() {
+    return credentialStatus().configured;
   }
 
   function storeCredentials(credentials) {
@@ -101,6 +110,7 @@ export function createAuth({ utils, preferences, http }) {
     clearCredentials,
     clearToken,
     configured,
+    credentialStatus,
     readCredentials,
     storeCredentials,
   };

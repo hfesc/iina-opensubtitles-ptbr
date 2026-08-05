@@ -24,6 +24,14 @@
           Senha
           <input id="password" type="password" autocomplete="current-password" placeholder="Deixe vazio para manter a atual" />
         </label>
+        <section id="credentials-summary" class="summary" aria-live="polite" hidden>
+          <h2>Dados salvos</h2>
+          <dl>
+            <div><dt>Chave da API</dt><dd id="saved-api-key">Verificando…</dd></div>
+            <div><dt>Usuário</dt><dd id="saved-username">Verificando…</dd></div>
+            <div><dt>Senha</dt><dd id="saved-password">Verificando…</dd></div>
+          </dl>
+        </section>
         <p id="status" role="status">Verificando configuração…</p>
         <div class="actions">
           <button id="clear" class="secondary" type="button" data-clickable>Limpar credenciais</button>

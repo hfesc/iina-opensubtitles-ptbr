@@ -21,12 +21,11 @@ standaloneWindow.setProperty({
   resizable: false,
   hudWindow: false,
 });
-standaloneWindow.setFrame(500, 480);
+standaloneWindow.setFrame(500, 580);
 standaloneWindow.loadFile("dist/ui/window/index.html");
 
 menu.addItem(menu.item("Configurar OpenSubtitles…", () => {
   standaloneWindow.open();
-  postCredentialStatus();
 }));
 
 standaloneWindow.onMessage("credentials-status-request", postCredentialStatus);
@@ -108,11 +107,11 @@ function sessionClient(session) {
 }
 
 function postCredentialStatus(message = "", ok = false) {
-  const configured = auth.configured();
+  const credentialStatus = auth.credentialStatus();
   standaloneWindow.postMessage("credentials-status", {
-    configured,
+    ...credentialStatus,
     ok,
-    message: message || (configured
+    message: message || (credentialStatus.configured
       ? "Credenciais configuradas no Chaves do macOS."
       : "Credenciais ainda não configuradas."),
   });

@@ -33,6 +33,21 @@ test("stores credentials only in the keychain", () => {
   assert.equal(setup.values.has("password"), false);
 });
 
+test("reports saved credentials without exposing secrets", () => {
+  const setup = harness({ http: {} });
+  const auth = createAuth(setup);
+  auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" });
+
+  assert.deepEqual(auth.credentialStatus(), {
+    configured: true,
+    username: "user",
+    apiKeySaved: true,
+    passwordSaved: true,
+  });
+  assert.equal(Object.values(auth.credentialStatus()).includes("key"), false);
+  assert.equal(Object.values(auth.credentialStatus()).includes("pass"), false);
+});
+
 test("logs in, caches the token and reuses it", async () => {
   let logins = 0;
   const setup = harness({

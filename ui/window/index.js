@@ -1,54 +1,101 @@
-const form = document.querySelector("#credentials-form");
-const status = document.querySelector("#status");
-const clearButton = document.querySelector("#clear");
-const submitButton = form.querySelector('button[type="submit"]');
-const fields = {
-  apiKey: document.querySelector("#api-key"),
-  username: document.querySelector("#username"),
-  password: document.querySelector("#password"),
-};
+window.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("#credentials-form");
+  const status = document.querySelector("#status");
+  const summary = document.querySelector("#credentials-summary");
+  const clearButton = document.querySelector("#clear");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const fields = {
+    apiKey: document.querySelector("#api-key"),
+    username: document.querySelector("#username"),
+    password: document.querySelector("#password"),
+  };
+  const summaryFields = {
+    apiKey: document.querySelector("#saved-api-key"),
+    username: document.querySelector("#saved-username"),
+    password: document.querySelector("#saved-password"),
+  };
+  let statusReceived = false;
+  let statusAttempts = 0;
 
-function setStatus(message, kind = "") {
-  status.textContent = message;
-  status.dataset.kind = kind;
-}
-
-function clearFields() {
-  Object.values(fields).forEach((field) => {
-    field.value = "";
-  });
-}
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  setStatus("Salvando e validando…");
-  submitButton.disabled = true;
-  clearButton.disabled = true;
-
-  window.iina.postMessage("credentials-save", {
-    apiKey: fields.apiKey.value.trim(),
-    username: fields.username.value.trim(),
-    password: fields.password.value,
-  });
-});
-
-clearButton.addEventListener("click", () => {
-  if (window.confirm("Remover as credenciais do Chaves do macOS?")) {
-    submitButton.disabled = true;
-    clearButton.disabled = true;
-    window.iina.postMessage("credentials-clear", null);
-  }
-});
-
-window.iina.onMessage("credentials-status", (payload) => {
-  submitButton.disabled = false;
-  clearButton.disabled = false;
-
-  if (payload.ok) {
-    clearFields();
+  function setStatus(message, kind = "") {
+    status.textContent = message;
+    status.dataset.kind = kind;
   }
 
-  setStatus(payload.message, payload.ok ? "success" : payload.configured ? "warning" : "error");
-});
+  function clearFields() {
+    Object.values(fields).forEach((field) => {
+      field.value = "";
+    });
+  }
 
-window.iina.postMessage("credentials-status-request", null);
+  function setPending(pending) {
+    submitButton.disabled = pending;
+    clearButton.disabled = pending;
+  }
+
+  function renderCredentialSummary(payload) {
+    const username = typeof payload.username === "string" ? payload.username : "";
+    summary.hidden = false;
+    summaryFields.apiKey.textContent = payload.apiKeySaved ? "Salva no Chaves do macOS" : "Não salva";
+    summaryFields.username.textContent = username || "Não salvo";
+    summaryFields.password.textContent = payload.passwordSaved ? "Salva no Chaves do macOS" : "Não salva";
+    fields.apiKey.placeholder = payload.apiKeySaved
+      ? "Chave salva — deixe vazio para manter"
+      : "Informe a chave da API";
+    fields.username.placeholder = username
+      ? `Usuário salvo: ${username} — deixe vazio para manter`
+      : "Informe seu usuário";
+    fields.password.placeholder = payload.passwordSaved
+      ? "Senha salva — deixe vazio para manter"
+      : "Informe sua senha";
+  }
+
+  function requestCredentialStatus() {
+    if (statusReceived || statusAttempts >= 5) return;
+    statusAttempts += 1;
+    window.iina.postMessage("credentials-status-request", null);
+    window.setTimeout(requestCredentialStatus, statusAttempts * 250);
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    setStatus("Salvando e validando…");
+    setPending(true);
+    window.iina.postMessage("credentials-save", {
+      apiKey: fields.apiKey.value.trim(),
+      username: fields.username.value.trim(),
+      password: fields.password.value,
+    });
+  });
+
+  clearButton.addEventListener("click", () => {
+    if (window.confirm("Remover as credenciais do Chaves do macOS?")) {
+      setPending(true);
+      window.iina.postMessage("credentials-clear", null);
+    }
+  });
+
+  window.iina.onMessage("credentials-status", (payload) => {
+    statusReceived = true;
+    setPending(false);
+    renderCredentialSummary(payload);
+
+    if (payload.ok) {
+      clearFields();
+    }
+
+    setStatus(payload.message, payload.ok ? "success" : payload.configured ? "warning" : "error");
+  });
+
+  window.setTimeout(() => {
+    if (!statusReceived) {
+      setPending(false);
+      setStatus(
+        "Não foi possível verificar a configuração. Feche e abra esta janela novamente.",
+        "error",
+      );
+    }
+  }, 3000);
+
+  requestCredentialStatus();
+});

@@ -48,6 +48,41 @@ input {
   color: FieldText;
 }
 
+.summary {
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, CanvasText 5%, transparent);
+}
+
+.summary h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.summary dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.summary dl div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.summary dt {
+  color: color-mix(in srgb, CanvasText 65%, transparent);
+}
+
+.summary dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-weight: 600;
+}
+
 #status {
   min-height: 18px;
   margin: 0;
