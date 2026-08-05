@@ -10,19 +10,19 @@
   <body>
     <main>
       <h1>OpenSubtitles PT-BR</h1>
-      <p class="intro">Informe sua chave de API Consumer e sua conta do OpenSubtitles.com. Os dados são salvos no Chaves do macOS.</p>
+      <p class="intro">Informe sua chave de API Consumer do OpenSubtitles.com. A conta é opcional e serve apenas para aumentar o limite diário de downloads. Os dados são salvos no Chaves do macOS.</p>
       <form id="credentials-form">
         <label>
           Chave da API
-          <input id="api-key" type="password" autocomplete="off" placeholder="Deixe vazio para manter a atual" />
+          <input id="api-key" type="password" autocomplete="off" placeholder="Informe a chave da API" />
         </label>
         <label>
-          Usuário
-          <input id="username" type="text" autocomplete="username" placeholder="Deixe vazio para manter o atual" />
+          Usuário <span class="optional">(opcional)</span>
+          <input id="username" type="text" autocomplete="username" placeholder="Opcional" />
         </label>
         <label>
-          Senha
-          <input id="password" type="password" autocomplete="current-password" placeholder="Deixe vazio para manter a atual" />
+          Senha <span class="optional">(opcional)</span>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Opcional" />
         </label>
         <section id="credentials-summary" class="summary" aria-live="polite" hidden>
           <h2>Dados salvos</h2>
@@ -38,7 +38,7 @@
           <button type="submit" data-clickable>Salvar e testar</button>
         </div>
       </form>
-      <p class="help">Crie sua chave em <strong>opensubtitles.com → API Consumers</strong>. Nenhum segredo é incluído nos arquivos do plugin.</p>
+      <p class="help">Crie sua chave em <strong>opensubtitles.com → API Consumers</strong>. Sem conta vinculada o limite é de 100 downloads por dia. Nenhum segredo é incluído nos arquivos do plugin.</p>
     </main>
   </body>
 </html>

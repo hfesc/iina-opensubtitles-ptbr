@@ -38,6 +38,11 @@ label {
   font-weight: 600;
 }
 
+.optional {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
 input {
   box-sizing: border-box;
   width: 100%;

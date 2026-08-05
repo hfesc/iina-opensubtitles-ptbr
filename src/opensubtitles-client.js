@@ -52,11 +52,14 @@ export function createOpenSubtitlesClient({
   }
 
   async function request(method, path, options = {}) {
+    // The API only serves a canonical query string and redirects anything else
+    // with a 301, so build it here instead of letting the host encode `params`.
+    const query = canonicalQuery(options.params);
     let response;
     try {
-      response = await http[method](`${normalizedBaseUrl}${path}`, {
+      response = await http[method](`${normalizedBaseUrl}${path}${query}`, {
         headers: headers(options.authenticated !== false),
-        params: options.params ?? {},
+        params: {},
         data: options.data ?? {},
       });
     } catch (error) {
@@ -92,6 +95,19 @@ export function createOpenSubtitlesClient({
       return request("post", "/download", { data: { file_id: fileId } });
     },
   };
+}
+
+export function canonicalQuery(params) {
+  const entries = Object.entries(params ?? {})
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([key, value]) => [key.toLowerCase(), String(value).trim().toLowerCase()])
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+
+  if (!entries.length) return "";
+
+  // encodeURIComponent leaves spaces as %20, which the API rejects with a 301.
+  const encode = (value) => encodeURIComponent(value).replace(/%20/g, "+");
+  return `?${entries.map(([key, value]) => `${encode(key)}=${encode(value)}`).join("&")}`;
 }
 
 function requestError(error) {

@@ -25,7 +25,10 @@ export function createAuth({ utils, preferences, http }) {
   function credentialStatus() {
     const credentials = readCredentials();
     return {
-      configured: Boolean(credentials.apiKey && credentials.username && credentials.password),
+      // The API key alone is enough to search and to download within the
+      // anonymous daily quota; the account is optional and only raises it.
+      configured: Boolean(credentials.apiKey),
+      accountLinked: Boolean(credentials.username && credentials.password),
       username: credentials.username,
       apiKeySaved: Boolean(credentials.apiKey),
       passwordSaved: Boolean(credentials.password),
@@ -76,8 +79,14 @@ export function createAuth({ utils, preferences, http }) {
 
   async function authenticate(force = false) {
     const credentials = readCredentials();
-    if (!credentials.apiKey || !credentials.username || !credentials.password) {
-      throw new Error("Configure a chave da API e sua conta do OpenSubtitles primeiro.");
+    if (!credentials.apiKey) {
+      throw new Error("Configure a chave da API do OpenSubtitles primeiro.");
+    }
+
+    // Without an account the API key still authorizes searches and the
+    // anonymous download quota, so return a session with no token.
+    if (!credentials.username || !credentials.password) {
+      return { ...credentials, token: "", baseUrl: DEFAULT_BASE_URL };
     }
 
     const expiresAt = Number(preferences.get("tokenExpiresAt") || 0);

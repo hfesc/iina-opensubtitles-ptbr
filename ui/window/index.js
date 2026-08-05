@@ -37,17 +37,19 @@ window.addEventListener("DOMContentLoaded", () => {
     const username = typeof payload.username === "string" ? payload.username : "";
     summary.hidden = false;
     summaryFields.apiKey.textContent = payload.apiKeySaved ? "Salva no Chaves do macOS" : "Não salva";
-    summaryFields.username.textContent = username || "Não salvo";
-    summaryFields.password.textContent = payload.passwordSaved ? "Salva no Chaves do macOS" : "Não salva";
+    summaryFields.username.textContent = username || "Não salvo (opcional)";
+    summaryFields.password.textContent = payload.passwordSaved
+      ? "Salva no Chaves do macOS"
+      : "Não salva (opcional)";
     fields.apiKey.placeholder = payload.apiKeySaved
       ? "Chave salva — deixe vazio para manter"
       : "Informe a chave da API";
     fields.username.placeholder = username
       ? `Usuário salvo: ${username} — deixe vazio para manter`
-      : "Informe seu usuário";
+      : "Opcional";
     fields.password.placeholder = payload.passwordSaved
       ? "Senha salva — deixe vazio para manter"
-      : "Informe sua senha";
+      : "Opcional";
   }
 
   function requestCredentialStatus() {

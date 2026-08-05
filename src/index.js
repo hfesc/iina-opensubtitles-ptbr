@@ -41,10 +41,15 @@ standaloneWindow.onMessage("credentials-clear", () => {
 standaloneWindow.onMessage("credentials-save", async (payload) => {
   try {
     if (!payload || !auth.storeCredentials(payload)) {
-      throw new Error("Preencha os três campos na primeira configuração.");
+      throw new Error("Informe ao menos a chave da API na primeira configuração.");
     }
-    await auth.authenticate(true);
-    postCredentialStatus("Credenciais salvas e validadas.", true);
+    const session = await auth.authenticate(true);
+    postCredentialStatus(
+      session.token
+        ? "Chave e conta salvas e validadas."
+        : "Chave da API salva. Sem conta vinculada, o limite é de 100 downloads por dia.",
+      true,
+    );
   } catch (error) {
     try {
       auth.clearToken();
@@ -88,6 +93,8 @@ subtitle.registerProvider("opensub-ptbr", {
       try {
         return await downloadSubtitle({ item, client: sessionClient(session), http, utils });
       } catch (error) {
+        // Retrying only helps when an account token can be refreshed.
+        if (!session.token) throw error;
         if (!(error instanceof OpenSubtitlesError) || error.code !== "authentication") throw error;
         auth.clearToken();
         session = await auth.authenticate(true);
@@ -115,8 +122,10 @@ function postCredentialStatus(message = "", ok = false) {
     ...credentialStatus,
     ok,
     message: message || (credentialStatus.configured
-      ? "Credenciais configuradas no Chaves do macOS."
-      : "Credenciais ainda não configuradas."),
+      ? credentialStatus.accountLinked
+        ? "Chave da API e conta configuradas no Chaves do macOS."
+        : "Chave da API configurada. Sem conta vinculada, o limite é de 100 downloads por dia."
+      : "Chave da API ainda não configurada."),
   });
 }
 

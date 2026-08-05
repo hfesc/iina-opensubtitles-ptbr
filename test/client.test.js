@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  canonicalQuery,
   createOpenSubtitlesClient,
   normalizeBaseUrl,
   OpenSubtitlesError,
@@ -26,7 +27,35 @@ test("sends the API key, JWT and PT-BR search parameters", async () => {
   assert.equal(results.length, 1);
   assert.equal(request.options.headers["Api-Key"], "test-key");
   assert.equal(request.options.headers.Authorization, "Bearer test-token");
-  assert.equal(request.options.params.languages, "pt-br");
+  assert.match(request.url, /\?languages=pt-br&query=filme$/);
+});
+
+test("omits the JWT header when no account is linked", async () => {
+  let headers;
+  const http = {
+    async get(_url, options) {
+      headers = options.headers;
+      return { statusCode: 200, data: { data: [] } };
+    },
+  };
+  await createOpenSubtitlesClient({ http, apiKey: "key", token: "" }).search({ query: "x" });
+  assert.equal(headers.Authorization, undefined);
+  assert.equal(headers["Api-Key"], "key");
+});
+
+test("builds the canonical query the API accepts without redirecting", () => {
+  // The API 301s anything that is not sorted, lowercased and plus-encoded.
+  assert.equal(
+    canonicalQuery({ query: "Dune Part Two", languages: "pt-BR", year: "2024" }),
+    "?languages=pt-br&query=dune+part+two&year=2024",
+  );
+  assert.equal(
+    canonicalQuery({ query: "x", season_number: "2", episode_number: "1" }),
+    "?episode_number=1&query=x&season_number=2",
+  );
+  assert.equal(canonicalQuery({ query: "a b", year: "" }), "?query=a+b");
+  assert.equal(canonicalQuery({}), "");
+  assert.equal(canonicalQuery(), "");
 });
 
 test("does not send the JWT while logging in", async () => {
@@ -42,11 +71,12 @@ test("does not send the JWT while logging in", async () => {
   assert.equal(headers["Api-Key"], "key");
 });
 
+// IINA rejects the promise on non-2xx responses, so the fixtures throw.
 for (const [status, code] of [[401, "authentication"], [406, "quota"], [429, "rate_limit"]]) {
   test(`maps HTTP ${status} to ${code}`, async () => {
     const http = {
       async get() {
-        return { statusCode: status, data: { message: "API details" } };
+        throw { statusCode: status, data: { message: "API details" } };
       },
     };
     await assert.rejects(

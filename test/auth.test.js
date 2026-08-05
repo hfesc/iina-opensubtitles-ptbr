@@ -33,6 +33,30 @@ test("stores credentials only in the keychain", () => {
   assert.equal(setup.values.has("password"), false);
 });
 
+test("treats the API key alone as configured, with the account optional", async () => {
+  const setup = harness({
+    http: {
+      async post() {
+        throw new Error("must not log in without an account");
+      },
+    },
+  });
+  const auth = createAuth(setup);
+  auth.storeCredentials({ apiKey: "key" });
+
+  assert.equal(auth.configured(), true);
+  assert.equal(auth.credentialStatus().accountLinked, false);
+
+  const session = await auth.authenticate();
+  assert.equal(session.apiKey, "key");
+  assert.equal(session.token, "");
+});
+
+test("requires the API key before searching", async () => {
+  const auth = createAuth(harness({ http: {} }));
+  await assert.rejects(() => auth.authenticate(), /chave da API/);
+});
+
 test("reports saved credentials without exposing secrets", () => {
   const setup = harness({ http: {} });
   const auth = createAuth(setup);
@@ -40,6 +64,7 @@ test("reports saved credentials without exposing secrets", () => {
 
   assert.deepEqual(auth.credentialStatus(), {
     configured: true,
+    accountLinked: true,
     username: "user",
     apiKeySaved: true,
     passwordSaved: true,
