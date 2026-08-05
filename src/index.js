@@ -15,7 +15,7 @@ const {
   preferences,
 } = iina;
 
-const auth = createAuth({ utils, preferences, http });
+const auth = createAuth({ preferences, http });
 
 standaloneWindow.setProperty({
   title: "Configurar OpenSubtitles",
@@ -33,7 +33,7 @@ standaloneWindow.onMessage("credentials-status-request", postCredentialStatus);
 standaloneWindow.onMessage("credentials-clear", () => {
   try {
     auth.disableCredentials();
-    postCredentialStatus("Credenciais desativadas. Use o Acesso às Chaves para remoção física.", true);
+    postCredentialStatus("Credenciais removidas.", true);
   } catch (error) {
     postCredentialStatus(messageFor(error), false);
   }
@@ -119,8 +119,8 @@ function postCredentialStatus(message = "", ok = false) {
     ok,
     message: message || (credentialStatus.configured
       ? credentialStatus.accountLinked
-        ? "Chave da API e conta configuradas no Chaves do macOS."
-        : "Chave da API configurada. Sem conta vinculada, o limite é de 100 downloads por dia."
+        ? "Chave da API e conta salvas."
+        : "Chave da API salva. Sem conta vinculada, o limite é de 100 downloads por dia."
       : "Chave da API ainda não configurada."),
   });
 }

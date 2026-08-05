@@ -1,36 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAuth, SERVICE } from "../src/auth.js";
+import { createAuth, PREF_NAMES } from "../src/auth.js";
 
 function harness(overrides = {}) {
-  const secrets = new Map();
   const values = new Map();
-  const utils = {
-    keychainRead(service, name) {
-      assert.equal(service, SERVICE);
-      return secrets.get(name) || false;
-    },
-    keychainWrite(service, name, value) {
-      assert.equal(service, SERVICE);
-      secrets.set(name, value);
-      return true;
-    },
-  };
   const preferences = {
     get: (key) => values.get(key),
     set: (key, value) => values.set(key, value),
     sync() {},
   };
-  return { secrets, values, utils, preferences, ...overrides };
+  return { values, preferences, ...overrides };
 }
 
-test("stores credentials only in the keychain", () => {
+test("stores credentials in IINA preferences", () => {
   const setup = harness({ http: {} });
   const auth = createAuth(setup);
   assert.equal(auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" }), true);
   assert.equal(auth.configured(), true);
-  assert.equal(setup.values.has("apiKey"), false);
-  assert.equal(setup.values.has("password"), false);
+  assert.equal(setup.values.get(PREF_NAMES.apiKey), "key");
+  assert.equal(setup.values.get(PREF_NAMES.password), "pass");
 });
 
 test("treats the API key alone as configured, with the account optional", async () => {
@@ -98,15 +86,15 @@ test("does not clear the token when no credential changes", () => {
   const setup = harness({ http: {} });
   const auth = createAuth(setup);
   auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" });
-  setup.secrets.set("jwt-token", "jwt");
+  setup.values.set(PREF_NAMES.token, "jwt");
   setup.values.set("tokenExpiresAt", 123);
 
   auth.storeCredentials({ apiKey: "", username: "", password: "" });
-  assert.equal(setup.secrets.get("jwt-token"), "jwt");
+  assert.equal(setup.values.get(PREF_NAMES.token), "jwt");
   assert.equal(setup.values.get("tokenExpiresAt"), 123);
 });
 
-test("disables credentials logically without trying to delete from keychain", () => {
+test("disables credentials logically and removes preferences", () => {
   const setup = harness({ http: {} });
   const auth = createAuth(setup);
   auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" });
@@ -115,16 +103,5 @@ test("disables credentials logically without trying to delete from keychain", ()
   assert.equal(auth.configured(), false);
   assert.equal(setup.values.get("tokenExpiresAt"), 0);
   assert.equal(setup.values.get("credentialsConfigured"), false);
-  // Real secrets are left untouched because IINA has no SecItemDelete
-  assert.equal(setup.secrets.get("api-key"), "key");
-});
-
-test("throws when storing a secret in the keychain fails", () => {
-  const setup = harness({ http: {} });
-  setup.utils.keychainWrite = () => false;
-  const auth = createAuth(setup);
-  assert.throws(
-    () => auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" }),
-    /acessar o Chaves/,
-  );
+  assert.equal(setup.values.get(PREF_NAMES.apiKey), "");
 });

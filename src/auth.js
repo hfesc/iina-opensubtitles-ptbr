@@ -4,28 +4,28 @@ import {
   normalizeBaseUrl,
 } from "./opensubtitles-client.js";
 
-const SERVICE = "iina-opensubtitles-ptbr";
 const TOKEN_LIFETIME_MS = 23 * 60 * 60 * 1000;
-const KEYCHAIN_NAMES = {
-  apiKey: "api-key",
-  username: "username",
-  password: "password",
-  token: "jwt-token",
+const PREF_NAMES = {
+  apiKey: "os_api_key",
+  username: "os_username",
+  password: "os_password",
+  token: "os_jwt_token",
 };
 
-export function createAuth({ utils, preferences, http }) {
+export function createAuth({ preferences, http }) {
   function readCredentials() {
     return {
-      apiKey: readSecret(utils, KEYCHAIN_NAMES.apiKey),
-      username: readSecret(utils, KEYCHAIN_NAMES.username),
-      password: readSecret(utils, KEYCHAIN_NAMES.password),
+      apiKey: readPref(PREF_NAMES.apiKey),
+      username: readPref(PREF_NAMES.username),
+      password: readPref(PREF_NAMES.password),
     };
   }
 
   function credentialStatus() {
     const credentials = readCredentials();
     return {
-      // The plugin is configured if the user explicitly enabled it and we have a key.
+      // The API key alone is enough to search and to download within the
+      // anonymous daily quota; the account is optional and only raises it.
       configured: configured() && Boolean(credentials.apiKey),
       accountLinked: Boolean(credentials.username && credentials.password),
       username: credentials.username,
@@ -49,7 +49,7 @@ export function createAuth({ utils, preferences, http }) {
     for (const key of ["apiKey", "username", "password"]) {
       const value = credentials[key];
       if (value) {
-        writeSecret(utils, KEYCHAIN_NAMES[key], value);
+        preferences.set(PREF_NAMES[key], value);
         changed = true;
       }
     }
@@ -61,12 +61,16 @@ export function createAuth({ utils, preferences, http }) {
 
   function disableCredentials() {
     preferences.set("credentialsConfigured", false);
+    for (const name of Object.values(PREF_NAMES)) {
+      preferences.set(name, "");
+    }
     invalidateToken();
   }
 
   function invalidateToken() {
     preferences.set("tokenExpiresAt", 0);
     preferences.set("apiBaseUrl", DEFAULT_BASE_URL);
+    preferences.set(PREF_NAMES.token, "");
     preferences.sync();
   }
 
@@ -87,7 +91,7 @@ export function createAuth({ utils, preferences, http }) {
     }
 
     const expiresAt = Number(preferences.get("tokenExpiresAt") || 0);
-    const cachedToken = readSecret(utils, KEYCHAIN_NAMES.token);
+    const cachedToken = readPref(PREF_NAMES.token);
     const baseUrl = normalizeBaseUrl(preferences.get("apiBaseUrl"));
     if (!force && cachedToken && expiresAt > Date.now()) {
       return { ...credentials, token: cachedToken, baseUrl };
@@ -102,13 +106,18 @@ export function createAuth({ utils, preferences, http }) {
     if (!response?.token) throw new Error("O OpenSubtitles não retornou um token de acesso.");
 
     const nextBaseUrl = normalizeBaseUrl(response.base_url);
-    writeSecret(utils, KEYCHAIN_NAMES.token, response.token);
+    preferences.set(PREF_NAMES.token, response.token);
     preferences.set("tokenExpiresAt", Date.now() + TOKEN_LIFETIME_MS);
     preferences.set("apiBaseUrl", nextBaseUrl);
     preferences.set("credentialsConfigured", true);
     preferences.sync();
 
     return { ...credentials, token: response.token, baseUrl: nextBaseUrl };
+  }
+
+  function readPref(name) {
+    const value = preferences.get(name);
+    return typeof value === "string" ? value : "";
   }
 
   return {
@@ -122,15 +131,4 @@ export function createAuth({ utils, preferences, http }) {
   };
 }
 
-function readSecret(utils, name) {
-  const value = utils.keychainRead(SERVICE, name);
-  return typeof value === "string" ? value : "";
-}
-
-function writeSecret(utils, name, value) {
-  if (!utils.keychainWrite(SERVICE, name, value)) {
-    throw new Error("Não foi possível acessar o Chaves do macOS.");
-  }
-}
-
-export { KEYCHAIN_NAMES, SERVICE, TOKEN_LIFETIME_MS };
+export { PREF_NAMES, TOKEN_LIFETIME_MS };

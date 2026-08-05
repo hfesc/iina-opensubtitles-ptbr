@@ -36,10 +36,10 @@ window.addEventListener("DOMContentLoaded", () => {
   function renderCredentialSummary(payload) {
     const username = typeof payload.username === "string" ? payload.username : "";
     summary.hidden = false;
-    summaryFields.apiKey.textContent = payload.apiKeySaved ? "Salva no Chaves do macOS" : "Não salva";
+    summaryFields.apiKey.textContent = payload.apiKeySaved ? "Salva" : "Não salva";
     summaryFields.username.textContent = username || "Não salvo (opcional)";
     summaryFields.password.textContent = payload.passwordSaved
-      ? "Salva no Chaves do macOS"
+      ? "Salva"
       : "Não salva (opcional)";
     fields.apiKey.placeholder = payload.apiKeySaved
       ? "Chave salva — deixe vazio para manter"
@@ -71,7 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   clearButton.addEventListener("click", () => {
-    if (window.confirm("Desativar as credenciais neste plugin? Isso não as remove fisicamente do macOS.")) {
+    if (window.confirm("Remover as credenciais deste plugin?")) {
       setPending(true);
       window.iina.postMessage("credentials-clear", null);
     }
