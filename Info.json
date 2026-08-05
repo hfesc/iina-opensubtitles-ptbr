@@ -1,13 +1,13 @@
 {
   "name": "OpenSubtitles PT-BR",
   "identifier": "com.github.iina-opensubtitles-ptbr",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Busca e baixa legendas em português do Brasil pelo OpenSubtitles.",
   "author": {
     "name": "Hugo Felipe Camilo",
     "url": "https://github.com/hfesc"
   },
-  "ghVersion": 8,
+  "ghVersion": 9,
   "ghRepo": "hfesc/iina-opensubtitles-ptbr",
   "entry": "dist/index.js",
   "permissions": [
