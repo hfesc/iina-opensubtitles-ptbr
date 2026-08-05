@@ -71,7 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   clearButton.addEventListener("click", () => {
-    if (window.confirm("Remover as credenciais do Chaves do macOS?")) {
+    if (window.confirm("Desativar as credenciais neste plugin? Isso não as remove fisicamente do macOS.")) {
       setPending(true);
       window.iina.postMessage("credentials-clear", null);
     }

@@ -106,30 +106,17 @@ test("does not clear the token when no credential changes", () => {
   assert.equal(setup.values.get("tokenExpiresAt"), 123);
 });
 
-test("clears all secret and non-secret state", () => {
+test("disables credentials logically without trying to delete from keychain", () => {
   const setup = harness({ http: {} });
   const auth = createAuth(setup);
   auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" });
-  auth.clearCredentials();
+  auth.disableCredentials();
+
   assert.equal(auth.configured(), false);
   assert.equal(setup.values.get("tokenExpiresAt"), 0);
   assert.equal(setup.values.get("credentialsConfigured"), false);
-});
-
-test("attempts to clear every secret when a keychain write fails", () => {
-  const setup = harness({ http: {} });
-  const attempted = [];
-  setup.utils.keychainWrite = (_service, name, value) => {
-    attempted.push(name);
-    if (name === "username") return false;
-    setup.secrets.set(name, value);
-    return true;
-  };
-  const auth = createAuth(setup);
-
-  assert.throws(() => auth.clearCredentials(), /remover todos os dados/);
-  assert.deepEqual(attempted, ["api-key", "username", "password", "jwt-token"]);
-  assert.equal(setup.values.get("credentialsConfigured"), false);
+  // Real secrets are left untouched because IINA has no SecItemDelete
+  assert.equal(setup.secrets.get("api-key"), "key");
 });
 
 test("throws when storing a secret in the keychain fails", () => {

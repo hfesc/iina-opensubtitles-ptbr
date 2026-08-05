@@ -25,9 +25,8 @@ export function createAuth({ utils, preferences, http }) {
   function credentialStatus() {
     const credentials = readCredentials();
     return {
-      // The API key alone is enough to search and to download within the
-      // anonymous daily quota; the account is optional and only raises it.
-      configured: Boolean(credentials.apiKey),
+      // The plugin is configured if the user explicitly enabled it and we have a key.
+      configured: configured() && Boolean(credentials.apiKey),
       accountLinked: Boolean(credentials.username && credentials.password),
       username: credentials.username,
       apiKeySaved: Boolean(credentials.apiKey),
@@ -36,7 +35,13 @@ export function createAuth({ utils, preferences, http }) {
   }
 
   function configured() {
-    return credentialStatus().configured;
+    // If the preference is unset, fall back to checking if we physically have a key,
+    // to preserve backwards compatibility with users upgrading from v0.1.x
+    const pref = preferences.get("credentialsConfigured");
+    if (pref === undefined || pref === null) {
+      return Boolean(readCredentials().apiKey);
+    }
+    return pref === true;
   }
 
   function storeCredentials(credentials) {
@@ -48,36 +53,28 @@ export function createAuth({ utils, preferences, http }) {
         changed = true;
       }
     }
-    if (changed) clearToken();
+    if (changed) invalidateToken();
     preferences.set("credentialsConfigured", configured());
     preferences.sync();
     return configured();
   }
 
-  function clearCredentials() {
-    let failed = false;
-    for (const name of Object.values(KEYCHAIN_NAMES)) {
-      try {
-        writeSecret(utils, name, "");
-      } catch {
-        failed = true;
-      }
-    }
+  function disableCredentials() {
     preferences.set("credentialsConfigured", false);
-    preferences.set("tokenExpiresAt", 0);
-    preferences.set("apiBaseUrl", DEFAULT_BASE_URL);
-    preferences.sync();
-    if (failed) throw new Error("Não foi possível remover todos os dados do Chaves do macOS.");
+    invalidateToken();
   }
 
-  function clearToken() {
-    writeSecret(utils, KEYCHAIN_NAMES.token, "");
+  function invalidateToken() {
     preferences.set("tokenExpiresAt", 0);
     preferences.set("apiBaseUrl", DEFAULT_BASE_URL);
     preferences.sync();
   }
 
   async function authenticate(force = false) {
+    if (!configured()) {
+      throw new Error("Configure a chave da API do OpenSubtitles primeiro.");
+    }
+
     const credentials = readCredentials();
     if (!credentials.apiKey) {
       throw new Error("Configure a chave da API do OpenSubtitles primeiro.");
@@ -116,8 +113,8 @@ export function createAuth({ utils, preferences, http }) {
 
   return {
     authenticate,
-    clearCredentials,
-    clearToken,
+    disableCredentials,
+    invalidateToken,
     configured,
     credentialStatus,
     readCredentials,

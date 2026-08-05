@@ -32,8 +32,8 @@ menu.addItem(menu.item("Configurar OpenSubtitles…", () => {
 standaloneWindow.onMessage("credentials-status-request", postCredentialStatus);
 standaloneWindow.onMessage("credentials-clear", () => {
   try {
-    auth.clearCredentials();
-    postCredentialStatus("Credenciais removidas.", true);
+    auth.disableCredentials();
+    postCredentialStatus("Credenciais desativadas. Use o Acesso às Chaves para remoção física.", true);
   } catch (error) {
     postCredentialStatus(messageFor(error), false);
   }
@@ -51,11 +51,7 @@ standaloneWindow.onMessage("credentials-save", async (payload) => {
       true,
     );
   } catch (error) {
-    try {
-      auth.clearToken();
-    } catch {
-      // Preserve the original error so the configuration window can display it.
-    }
+    auth.invalidateToken();
     const message = messageFor(error);
     console.error(`[OpenSubtitles PT-BR] Falha ao validar credenciais: ${message}`);
     postCredentialStatus(message, false);
@@ -96,7 +92,7 @@ subtitle.registerProvider("opensub-ptbr", {
         // Retrying only helps when an account token can be refreshed.
         if (!session.token) throw error;
         if (!(error instanceof OpenSubtitlesError) || error.code !== "authentication") throw error;
-        auth.clearToken();
+        auth.invalidateToken();
         session = await auth.authenticate(true);
         return await downloadSubtitle({ item, client: sessionClient(session), http, utils });
       }
