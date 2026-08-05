@@ -5,6 +5,7 @@ import { createOpenSubtitlesClient, OpenSubtitlesError } from "./opensubtitles-c
 import { describeResult, prepareResults } from "./results.js";
 
 const {
+  console,
   core,
   http,
   menu,
@@ -50,7 +51,9 @@ standaloneWindow.onMessage("credentials-save", async (payload) => {
     } catch {
       // Preserve the original error so the configuration window can display it.
     }
-    postCredentialStatus(messageFor(error), false);
+    const message = messageFor(error);
+    console.error(`[OpenSubtitles PT-BR] Falha ao validar credenciais: ${message}`);
+    postCredentialStatus(message, false);
   }
 });
 
@@ -118,10 +121,17 @@ function postCredentialStatus(message = "", ok = false) {
 }
 
 function handleError(error) {
-  core.osd(messageFor(error));
+  const message = messageFor(error);
+  console.error(`[OpenSubtitles PT-BR] ${message}`);
+  core.osd(message);
 }
 
 function messageFor(error) {
   if (error instanceof OpenSubtitlesError || error instanceof Error) return error.message;
+  if (typeof error === "string" && error) return error;
+  if (error && typeof error === "object") {
+    return error.message || error.reason || error.description ||
+      `Falha no OpenSubtitles (HTTP ${error.statusCode || "desconhecido"}).`;
+  }
   return "Não foi possível acessar o OpenSubtitles.";
 }

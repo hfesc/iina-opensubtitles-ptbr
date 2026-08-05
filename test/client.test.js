@@ -56,6 +56,40 @@ for (const [status, code] of [[401, "authentication"], [406, "quota"], [429, "ra
   });
 }
 
+test("maps rejected IINA HTTP responses to useful API errors", async () => {
+  const http = {
+    async post() {
+      throw {
+        statusCode: 401,
+        reason: "unauthorized",
+        data: { message: "Invalid credentials" },
+      };
+    },
+  };
+
+  await assert.rejects(
+    () => createOpenSubtitlesClient({ http, apiKey: "key" }).login("user", "pass"),
+    (error) => error instanceof OpenSubtitlesError &&
+      error.code === "authentication" &&
+      error.statusCode === 401,
+  );
+});
+
+test("preserves network details from rejected IINA HTTP responses", async () => {
+  const http = {
+    async post() {
+      throw { reason: "The Internet connection appears to be offline." };
+    },
+  };
+
+  await assert.rejects(
+    () => createOpenSubtitlesClient({ http, apiKey: "key" }).login("user", "pass"),
+    (error) => error instanceof OpenSubtitlesError &&
+      error.code === "network" &&
+      error.message.includes("offline"),
+  );
+});
+
 test("rejects malformed JSON responses", async () => {
   const http = {
     async get() {

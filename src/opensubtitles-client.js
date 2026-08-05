@@ -45,18 +45,31 @@ export function createOpenSubtitlesClient({
       Accept: "application/json",
       "Content-Type": "application/json",
       "Api-Key": apiKey,
-      "User-Agent": "IINA OpenSubtitles PT-BR",
+      "User-Agent": "IINAOpenSubtitlesPTBR v0.1.3",
     };
     if (authenticated && token) value.Authorization = `Bearer ${token}`;
     return value;
   }
 
   async function request(method, path, options = {}) {
-    const response = await http[method](`${normalizedBaseUrl}${path}`, {
-      headers: headers(options.authenticated !== false),
-      params: options.params ?? {},
-      data: options.data ?? {},
-    });
+    let response;
+    try {
+      response = await http[method](`${normalizedBaseUrl}${path}`, {
+        headers: headers(options.authenticated !== false),
+        params: options.params ?? {},
+        data: options.data ?? {},
+      });
+    } catch (error) {
+      throw requestError(error);
+    }
+
+    if (!response) {
+      throw new OpenSubtitlesError(
+        "O IINA bloqueou a solicitação ao OpenSubtitles.",
+        "network",
+      );
+    }
+
     const body = parseBody(response);
     assertSuccessful(response.statusCode, body);
     return body;
@@ -79,6 +92,38 @@ export function createOpenSubtitlesClient({
       return request("post", "/download", { data: { file_id: fileId } });
     },
   };
+}
+
+function requestError(error) {
+  if (error instanceof OpenSubtitlesError) return error;
+
+  if (error && typeof error === "object") {
+    const body = parseBody(error);
+    const statusCode = Number(error.statusCode || 0);
+    if (statusCode) {
+      try {
+        assertSuccessful(statusCode, body);
+      } catch (mappedError) {
+        return mappedError;
+      }
+    }
+
+    const detail = body?.message || error.reason || error.description || "";
+    return new OpenSubtitlesError(
+      detail
+        ? `Não foi possível acessar o OpenSubtitles: ${detail}`
+        : "Não foi possível conectar ao OpenSubtitles. Verifique sua internet e tente novamente.",
+      "network",
+      statusCode,
+    );
+  }
+
+  return new OpenSubtitlesError(
+    typeof error === "string" && error
+      ? `Não foi possível acessar o OpenSubtitles: ${error}`
+      : "Não foi possível conectar ao OpenSubtitles. Verifique sua internet e tente novamente.",
+    "network",
+  );
 }
 
 function parseBody(response) {
@@ -129,4 +174,4 @@ function assertSuccessful(statusCode, body) {
   );
 }
 
-export { DEFAULT_BASE_URL };
+export { DEFAULT_BASE_URL, requestError };
