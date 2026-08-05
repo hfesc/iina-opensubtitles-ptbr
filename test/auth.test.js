@@ -6,11 +6,11 @@ function harness(overrides = {}) {
   const secrets = new Map();
   const values = new Map();
   const utils = {
-    keyChainRead(service, name) {
+    keychainRead(service, name) {
       assert.equal(service, SERVICE);
       return secrets.get(name) || false;
     },
-    keyChainWrite(service, name, value) {
+    keychainWrite(service, name, value) {
       assert.equal(service, SERVICE);
       secrets.set(name, value);
       return true;
@@ -79,7 +79,7 @@ test("clears all secret and non-secret state", () => {
 test("attempts to clear every secret when a keychain write fails", () => {
   const setup = harness({ http: {} });
   const attempted = [];
-  setup.utils.keyChainWrite = (_service, name, value) => {
+  setup.utils.keychainWrite = (_service, name, value) => {
     attempted.push(name);
     if (name === "username") return false;
     setup.secrets.set(name, value);
@@ -94,7 +94,7 @@ test("attempts to clear every secret when a keychain write fails", () => {
 
 test("throws when storing a secret in the keychain fails", () => {
   const setup = harness({ http: {} });
-  setup.utils.keyChainWrite = () => false;
+  setup.utils.keychainWrite = () => false;
   const auth = createAuth(setup);
   assert.throws(
     () => auth.storeCredentials({ apiKey: "key", username: "user", password: "pass" }),

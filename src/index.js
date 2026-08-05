@@ -46,7 +46,11 @@ standaloneWindow.onMessage("credentials-save", async (payload) => {
     await auth.authenticate(true);
     postCredentialStatus("Credenciais salvas e validadas.", true);
   } catch (error) {
-    auth.clearToken();
+    try {
+      auth.clearToken();
+    } catch {
+      // Preserve the original error so the configuration window can display it.
+    }
     postCredentialStatus(messageFor(error), false);
   }
 });
@@ -72,8 +76,8 @@ subtitle.registerProvider("opensub-ptbr", {
     }
   },
 
-  description() {
-    return describeResult;
+  description(item) {
+    return describeResult(item);
   },
 
   async download(item) {

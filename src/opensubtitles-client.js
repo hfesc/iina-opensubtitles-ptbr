@@ -45,7 +45,7 @@ export function createOpenSubtitlesClient({
       Accept: "application/json",
       "Content-Type": "application/json",
       "Api-Key": apiKey,
-      "User-Agent": "IINA OpenSubtitles PT-BR v1.0.0",
+      "User-Agent": "IINA OpenSubtitles PT-BR v0.1.1",
     };
     if (authenticated && token) value.Authorization = `Bearer ${token}`;
     return value;

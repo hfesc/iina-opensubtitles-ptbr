@@ -107,12 +107,12 @@ export function createAuth({ utils, preferences, http }) {
 }
 
 function readSecret(utils, name) {
-  const value = utils.keyChainRead(SERVICE, name);
+  const value = utils.keychainRead(SERVICE, name);
   return typeof value === "string" ? value : "";
 }
 
 function writeSecret(utils, name, value) {
-  if (!utils.keyChainWrite(SERVICE, name, value)) {
+  if (!utils.keychainWrite(SERVICE, name, value)) {
     throw new Error("Não foi possível acessar o Chaves do macOS.");
   }
 }

@@ -1,6 +1,7 @@
 const form = document.querySelector("#credentials-form");
 const status = document.querySelector("#status");
 const clearButton = document.querySelector("#clear");
+const submitButton = form.querySelector('button[type="submit"]');
 const fields = {
   apiKey: document.querySelector("#api-key"),
   username: document.querySelector("#username"),
@@ -21,6 +22,9 @@ function clearFields() {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   setStatus("Salvando e validando…");
+  submitButton.disabled = true;
+  clearButton.disabled = true;
+
   window.iina.postMessage("credentials-save", {
     apiKey: fields.apiKey.value.trim(),
     username: fields.username.value.trim(),
@@ -30,12 +34,20 @@ form.addEventListener("submit", (event) => {
 
 clearButton.addEventListener("click", () => {
   if (window.confirm("Remover as credenciais do Chaves do macOS?")) {
+    submitButton.disabled = true;
+    clearButton.disabled = true;
     window.iina.postMessage("credentials-clear", null);
   }
 });
 
 window.iina.onMessage("credentials-status", (payload) => {
-  clearFields();
+  submitButton.disabled = false;
+  clearButton.disabled = false;
+
+  if (payload.ok) {
+    clearFields();
+  }
+
   setStatus(payload.message, payload.ok ? "success" : payload.configured ? "warning" : "error");
 });
 
